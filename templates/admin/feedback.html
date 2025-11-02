@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Management - Viddy Downloader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --accent: #ff4081;
+            --border: #333333;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: var(--bg-secondary);
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        
+        .navbar-brand span {
+            color: var(--accent);
+        }
+        
+        .navbar-nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+        
+        .nav-link.active {
+            color: var(--accent);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background-color: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .badge-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #e03b72;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('index') }}" class="navbar-brand">Viddy <span>Downloader</span></a>
+        <div class="navbar-nav">
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a>
+            <a href="{{ url_for('admin.users') }}" class="nav-link">Users</a>
+            <a href="{{ url_for('admin.feedback') }}" class="nav-link active">Feedback</a>
+            <a href="{{ url_for('admin.downloads') }}" class="nav-link">Downloads</a>
+            <a href="{{ url_for('index') }}" class="nav-link">Back to Site</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1>Feedback Management</h1>
+        <p>Review and respond to user feedback.</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in feedback %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        {% if item.user %}
+                            {{ item.user.username }}
+                        {% else %}
+                            Anonymous
+                        {% endif %}
+                    </td>
+                    <td>{{ item.subject }}</td>
+                    <td>
+                        {% if item.is_resolved %}
+                            <span class="badge badge-success">Resolved</span>
+                        {% else %}
+                            <span class="badge badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin.feedback_detail', id=item.id) }}" class="btn btn-primary">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Plans - Viddy Downloader</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-card: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a3a3a3;
+            --text-muted: #666666;
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --border: #333333;
+            --border-light: #262626;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-weight: 400;
+            overflow-x: hidden;
+        }
+
+        .background-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .plans-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .plan-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 2rem;
+            width: 320px;
+            transition: all 0.3s ease;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .plan-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price span {
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+
+        .plan-billing {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .plan-features {
+            margin-bottom: 2rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-icon {
+            color: var(--success);
+            margin-right: 0.75rem;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-secondary);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .plan-card-wrapper {
+            position: relative;
+        }
+
+        .alert {
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: var(--bg-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .navbar-brand span {
+            color: var(--accent);
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-link.active {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
+    
+    <nav class="navbar">
+        <a href="{{ url_for('index') }}" class="navbar-brand">Viddy <span>Downloader</span></a>
+        <div class="navbar-nav">
+            <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('subscription.my_subscription') }}" class="nav-link">My Subscription</a>
+                <a href="{{ url_for('auth.profile') }}" class="nav-link">Profile</a>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+                <a href="{{ url_for('auth.signup') }}" class="nav-link">Sign Up</a>
+            {% endif %}
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Choose Your Plan</h1>
+            <p>Unlock premium features and enhance your video downloading experience with our subscription plans.</p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="plans-container">
+            <!-- Free Plan -->
+            <div class="plan-card-wrapper">
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <div class="plan-name">Free</div>
+                        <div class="plan-price">$0 <span>/month</span></div>
+                        <div class="plan-billing">Basic features</div>
+                    </div>
+                    
+                    <div class="plan-features">
+                        {% for feature in plans['free']['features'] %}
+                            <div class="feature-item">
+                                <span class="feature-icon">✓</span>
+                                <span>{{ feature }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if current_user.is_authenticated and current_user.subscription and current_user.subscription.plan_type == 'free' %}
+                        <a href="#" class="btn btn-outline" disabled>Current Plan</a>
+                    {% else %}
+                        <a href="{{ url_for('subscription.success', plan_type='free') }}" class="btn btn-outline">Select Plan</a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Basic Plan -->
+            <div class="plan-card-wrapper">
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <div class="plan-name">Basic</div>
+                        <div class="plan-price">${{ plans['basic']['price'] }} <span>/month</span></div>
+                        <div class="plan-billing">Billed monthly</div>
+                    </div>
+                    
+                    <div class="plan-features">
+                        {% for feature in plans['basic']['features'] %}
+                            <div class="feature-item">
+                                <span class="feature-icon">✓</span>
+                                <span>{{ feature }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if current_user.is_authenticated and current_user.subscription and current_user.subscription.plan_type == 'basic' %}
+                        <a href="#" class="btn btn-outline" disabled>Current Plan</a>
+                    {% else %}
+                        <a href="{{ url_for('subscription.checkout', plan_type='basic') }}" class="btn btn-primary">Subscribe Now</a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Premium Plan -->
+            <div class="plan-card-wrapper">
+                <div class="popular-badge">Popular</div>
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <div class="plan-name">Premium</div>
+                        <div class="plan-price">${{ plans['premium']['price'] }} <span>/month</span></div>
+                        <div class="plan-billing">Billed monthly</div>
+                    </div>
+                    
+                    <div class="plan-features">
+                        {% for feature in plans['premium']['features'] %}
+                            <div class="feature-item">
+                                <span class="feature-icon">✓</span>
+                                <span>{{ feature }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if current_user.is_authenticated and current_user.subscription and current_user.subscription.plan_type == 'premium' %}
+                        <a href="#" class="btn btn-outline" disabled>Current Plan</a>
+                    {% else %}
+                        <a href="{{ url_for('subscription.checkout', plan_type='premium') }}" class="btn btn-primary">Subscribe Now</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

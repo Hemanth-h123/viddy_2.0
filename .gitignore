@@ -1,0 +1,21 @@
+# Python / Flask
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE / OS
+.DS_Store
+.vscode/
+.idea/
+
+# App data
+downloads/
+viddy.db
+instance/

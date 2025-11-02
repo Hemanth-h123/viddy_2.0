@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Feedback - Viddy Downloader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --accent: #ff4081;
+            --border: #333333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: var(--bg-secondary);
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        
+        .navbar-brand span {
+            color: var(--accent);
+        }
+        
+        .navbar-nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+        
+        .nav-link.active {
+            color: var(--accent);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+        }
+        
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        button:hover {
+            background: #e03b72;
+        }
+        
+        .flash-messages {
+            margin-bottom: 1.5rem;
+        }
+        
+        .flash-message {
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('index') }}" class="navbar-brand">Viddy <span>Downloader</span></a>
+        <div class="navbar-nav">
+            <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('auth.profile') }}" class="nav-link">Profile</a>
+                <a href="{{ url_for('subscription.plans') }}" class="nav-link">Subscription</a>
+                <a href="{{ url_for('feedback.my_feedback') }}" class="nav-link">My Feedback</a>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a>
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Admin</a>
+                {% endif %}
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+                <a href="{{ url_for('auth.signup') }}" class="nav-link">Sign Up</a>
+            {% endif %}
+            <a href="{{ url_for('feedback.submit') }}" class="nav-link active">Feedback</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1>Submit Feedback</h1>
+        <p>We value your feedback! Please let us know how we can improve Viddy Downloader.</p>
+        
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" required></textarea>
+            </div>
+            
+            <button type="submit">Submit Feedback</button>
+        </form>
+    </div>
+</body>
+</html>
