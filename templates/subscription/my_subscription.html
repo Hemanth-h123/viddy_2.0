@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Subscription - Viddy Downloader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-primary:#121212; --bg-secondary:#1e1e1e; --text-primary:#fff; --text-secondary:#b3b3b3; --accent:#ff4081; --border:#333; }
+        body { font-family:'Inter',sans-serif; background:var(--bg-primary); color:var(--text-primary); }
+        .container { max-width:900px; margin:0 auto; padding:2rem; }
+        .navbar { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; background:var(--bg-secondary); border-bottom:1px solid var(--border); }
+        .navbar a { color:var(--text-secondary); text-decoration:none; margin-right:1rem; }
+        .navbar a.active, .navbar a:hover { color:var(--text-primary); }
+        .card { background:var(--bg-secondary); border-radius:8px; padding:1.5rem; margin-top:1.5rem; }
+        .plan { font-size:1.25rem; font-weight:700; color:var(--accent); }
+        .actions a { display:inline-block; background:var(--accent); color:#fff; padding:0.5rem 1rem; border-radius:4px; text-decoration:none; margin-right:0.75rem; }
+        .actions a:hover { background:#e03b72; }
+        ul { margin:0.75rem 0 0; padding-left:1.25rem; color:var(--text-secondary); }
+    </style>
+    </head>
+<body>
+    <nav class="navbar">
+        <div>
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('subscription.plans') }}" class="active">Plans</a>
+            <a href="{{ url_for('auth.profile') }}">Profile</a>
+        </div>
+        <div>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('auth.logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+    <div class="container">
+        <h1>My Subscription</h1>
+        <div class="card">
+            {% set sub = current_user.subscription %}
+            {% if sub %}
+                <div class="plan">Current Plan: {{ plans[sub.plan_type].name|default('Free') }}</div>
+                <p>Start: {{ sub.start_date }} | End: {{ sub.end_date }} | Active: {{ 'Yes' if sub.is_active else 'No' }}</p>
+                <ul>
+                    {% for f in plans[sub.plan_type].features %}
+                        <li>{{ f }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="plan">Current Plan: Free</div>
+                <p>You don't have a subscription yet.</p>
+            {% endif %}
+            <div class="actions">
+                <a href="{{ url_for('subscription.plans') }}">Change Plan</a>
+                <a href="{{ url_for('subscription.cancel') }}">Cancel</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

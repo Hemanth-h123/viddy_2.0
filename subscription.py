@@ -2,13 +2,23 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from models import db, User, Subscription
 from datetime import datetime, timedelta
-import stripe
 import os
+
+# Lazy import Stripe to avoid startup failures when unavailable
+try:
+    import stripe  # type: ignore
+except Exception:
+    stripe = None
 
 subscription = Blueprint('subscription', __name__)
 
-# Initialize Stripe - in production, use environment variables for keys
-stripe.api_key = "sk_test_your_stripe_key"  # Replace with your actual test key
+# Initialize Stripe using environment variables; disable if not configured
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PRICE_BASIC = os.getenv("STRIPE_PRICE_BASIC")  # e.g., price_XXXXXXXX
+STRIPE_PRICE_PREMIUM = os.getenv("STRIPE_PRICE_PREMIUM")
+
+if stripe and STRIPE_SECRET_KEY:
+    stripe.api_key = STRIPE_SECRET_KEY
 
 # Define subscription plans
 SUBSCRIPTION_PLANS = {
@@ -22,13 +32,13 @@ SUBSCRIPTION_PLANS = {
         'name': 'Basic',
         'price': 4.99,
         'features': ['Unlimited downloads', 'HD quality', 'No ads', 'Faster downloads'],
-        'stripe_price_id': 'price_basic_id'  # Replace with actual Stripe price ID
+        'stripe_price_id': STRIPE_PRICE_BASIC
     },
     'premium': {
         'name': 'Premium',
         'price': 9.99,
         'features': ['Everything in Basic', '4K quality', 'Priority support', 'Batch downloads'],
-        'stripe_price_id': 'price_premium_id'  # Replace with actual Stripe price ID
+        'stripe_price_id': STRIPE_PRICE_PREMIUM
     }
 }
 
@@ -42,9 +52,14 @@ def checkout(plan_type):
     if plan_type not in SUBSCRIPTION_PLANS or plan_type == 'free':
         flash('Invalid subscription plan')
         return redirect(url_for('subscription.plans'))
-    
+
     plan = SUBSCRIPTION_PLANS[plan_type]
-    
+
+    # Guard: Stripe must be available and configured
+    if not stripe or not STRIPE_SECRET_KEY or not plan.get('stripe_price_id'):
+        flash('Payments are not configured. Please try again later or choose the Free plan.')
+        return redirect(url_for('subscription.plans'))
+
     try:
         # Create Stripe checkout session
         checkout_session = stripe.checkout.Session.create(
