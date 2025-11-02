@@ -2,7 +2,7 @@ flask==2.0.1
 flask-login==0.5.0
 flask-sqlalchemy==2.5.1
 sqlalchemy==1.4.46
-yt-dlp==2023.3.4
+yt-dlp>=2024.08.12
 instaloader==4.9.5
 stripe==13.0.1
 werkzeug==2.0.1

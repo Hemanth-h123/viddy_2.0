@@ -107,6 +107,19 @@ class UniversalDownloader:
     def download_youtube_content(self, url, path):
         """Download YouTube videos, shorts, playlists"""
         try:
+            # Optional cookies support via env var to reduce rate-limit and bot checks
+            cookies_text = os.environ.get('YTDLP_COOKIES')
+            cookiefile_path = None
+            if cookies_text:
+                try:
+                    tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.txt')
+                    tmp.write(cookies_text.encode('utf-8'))
+                    tmp.flush()
+                    tmp.close()
+                    cookiefile_path = tmp.name
+                except Exception:
+                    cookiefile_path = None
+
             ydl_opts = {
                 'outtmpl': os.path.join(path, '%(uploader)s - %(title)s.%(ext)s'),
                 'format': 'best[height<=1080]',
@@ -114,8 +127,15 @@ class UniversalDownloader:
                 'writeautomaticsub': True,
                 'subtitleslangs': ['en'],
                 'ignoreerrors': True,
+                'nocheckcertificate': True,
+                'http_headers': {'User-Agent': self.session.headers.get('User-Agent')},
+                # Force web client to avoid android client API errors seen on some hosts
+                'extractor_args': {'youtube': {'player_client': ['web']}},
             }
-            
+
+            if cookiefile_path:
+                ydl_opts['cookiefile'] = cookiefile_path
+
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
                 
@@ -137,6 +157,12 @@ class UniversalDownloader:
                     }
         except Exception as e:
             return {'status': 'error', 'message': f'YouTube error: {str(e)}'}
+        finally:
+            if cookiefile_path and os.path.exists(cookiefile_path):
+                try:
+                    os.remove(cookiefile_path)
+                except Exception:
+                    pass
     
     def download_instagram_content(self, url, path):
         """Download Instagram posts, reels, stories, IGTV"""
