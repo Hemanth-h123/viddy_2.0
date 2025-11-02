@@ -120,6 +120,11 @@ class UniversalDownloader:
                 except Exception:
                     cookiefile_path = None
 
+            # Allow configuring YouTube client and PO token via env vars
+            # Suggested: set YTDLP_CLIENT=mweb when using PO token
+            ytdlp_client = os.environ.get('YTDLP_CLIENT', 'web')
+            ytdlp_po_token = os.environ.get('YTDLP_PO_TOKEN')
+
             ydl_opts = {
                 'outtmpl': os.path.join(path, '%(uploader)s - %(title)s.%(ext)s'),
                 'format': 'best[height<=1080]',
@@ -129,9 +134,20 @@ class UniversalDownloader:
                 'ignoreerrors': True,
                 'nocheckcertificate': True,
                 'http_headers': {'User-Agent': self.session.headers.get('User-Agent')},
-                # Force web client to avoid android client API errors seen on some hosts
-                'extractor_args': {'youtube': {'player_client': ['web']}},
+                # Configure extractor client and optional PO token
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': [ytdlp_client]
+                    }
+                },
             }
+
+            if ytdlp_po_token:
+                try:
+                    # attach PO token if provided
+                    ydl_opts['extractor_args']['youtube']['po_token'] = [ytdlp_po_token]
+                except Exception:
+                    pass
 
             if cookiefile_path:
                 ydl_opts['cookiefile'] = cookiefile_path
@@ -177,6 +193,18 @@ class UniversalDownloader:
                 save_metadata=True,
                 compress_json=False
             )
+
+            # Optional login or session file to avoid 401 on certain endpoints
+            ig_username = os.environ.get('IG_USERNAME')
+            ig_password = os.environ.get('IG_PASSWORD')
+            ig_sessionfile = os.environ.get('IG_SESSIONFILE')
+            try:
+                if ig_sessionfile and ig_username:
+                    loader.load_session_from_file(ig_username, ig_sessionfile)
+                elif ig_username and ig_password:
+                    loader.login(ig_username, ig_password)
+            except Exception:
+                pass
             
             # Handle different Instagram URL types
             if '/stories/' in url:
