@@ -109,9 +109,11 @@ class UniversalDownloader:
     def download_youtube_content(self, url, path):
         """Download YouTube videos, shorts, playlists"""
         try:
-            # Optional cookies support via env var to reduce rate-limit and bot checks
+            # Optional cookies: prefer env var content; else use youtube_cookies.txt in project root
             cookies_text = os.environ.get('YTDLP_COOKIES')
             cookiefile_path = None
+            cookiefile_static = None
+            static_cookie_path = os.path.join(os.getcwd(), 'youtube_cookies.txt')
             if cookies_text:
                 try:
                     tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.txt')
@@ -121,6 +123,9 @@ class UniversalDownloader:
                     cookiefile_path = tmp.name
                 except Exception:
                     cookiefile_path = None
+            elif os.path.exists(static_cookie_path):
+                print("✅ Using YouTube cookies for authenticated download")
+                cookiefile_static = static_cookie_path
 
             # Allow configuring YouTube client and PO token via env vars
             # Suggested: set YTDLP_CLIENT=mweb when using PO token
@@ -129,13 +134,19 @@ class UniversalDownloader:
 
             ydl_opts = {
                 'outtmpl': os.path.join(path, '%(uploader)s - %(title)s.%(ext)s'),
-                'format': 'best[height<=1080]',
+                'format': 'bestvideo+bestaudio/best',
                 'writesubtitles': True,
                 'writeautomaticsub': True,
                 'subtitleslangs': ['en'],
                 'ignoreerrors': True,
                 'nocheckcertificate': True,
-                'http_headers': {'User-Agent': self.session.headers.get('User-Agent')},
+                'http_headers': {'User-Agent': self.session.headers.get('User-Agent') or 'Mozilla/5.0'},
+                'merge_output_format': 'mp4',
+                'quiet': False,
+                'noplaylist': True,
+                'retries': 5,
+                'sleep_interval': 5,
+                'max_sleep_interval': 15,
                 # Configure extractor client and optional PO token
                 'extractor_args': {
                     'youtube': {
@@ -153,6 +164,8 @@ class UniversalDownloader:
 
             if cookiefile_path:
                 ydl_opts['cookiefile'] = cookiefile_path
+            elif cookiefile_static:
+                ydl_opts['cookiefile'] = cookiefile_static
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
