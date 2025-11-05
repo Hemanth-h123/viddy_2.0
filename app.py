@@ -41,10 +41,12 @@ app.register_blueprint(subscription_blueprint, url_prefix='/subscription')
 app.register_blueprint(admin, url_prefix='/admin')
 app.register_blueprint(feedback_bp, url_prefix='/feedback')
 
-# Create downloads directory if it doesn't exist
-DOWNLOAD_DIR = os.path.join(os.getcwd(), 'downloads')
-if not os.path.exists(DOWNLOAD_DIR):
-    os.makedirs(DOWNLOAD_DIR)
+# Create downloads directory in a runtime-writable location
+# Prefer env var DOWNLOAD_DIR; on Render use /tmp which is writable; else fallback to CWD
+DOWNLOAD_DIR = os.environ.get('DOWNLOAD_DIR') or (
+    os.path.join('/tmp', 'downloads') if os.environ.get('RENDER', '').lower() == 'true' else os.path.join(os.getcwd(), 'downloads')
+)
+os.makedirs(DOWNLOAD_DIR, exist_ok=True)
     
 # Create database tables
 with app.app_context():
@@ -496,7 +498,15 @@ def download_file(filename):
         file_path = os.path.join(DOWNLOAD_DIR, safe_filename)
         
         if os.path.exists(file_path):
-            return send_file(file_path, as_attachment=True)
+            resp = send_file(file_path, as_attachment=True)
+            # Schedule deletion after response is sent
+            def cleanup(path):
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
+            threading.Thread(target=cleanup, args=(file_path,), daemon=True).start()
+            return resp
         else:
             return jsonify({'error': 'File not found'}), 404
     except Exception as e:
@@ -521,7 +531,15 @@ def download_folder(foldername):
                         arcname = os.path.relpath(file_path, folder_path)
                         zipf.write(file_path, arcname)
             
-            return send_file(temp_zip.name, as_attachment=True, download_name=f'{safe_foldername}.zip')
+            resp = send_file(temp_zip.name, as_attachment=True, download_name=f'{safe_foldername}.zip')
+            # Schedule deletion of the temporary zip file
+            def cleanup(path):
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
+            threading.Thread(target=cleanup, args=(temp_zip.name,), daemon=True).start()
+            return resp
         else:
             return jsonify({'error': 'Folder not found'}), 404
     except Exception as e:
